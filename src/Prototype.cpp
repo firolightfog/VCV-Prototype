@@ -11,6 +11,8 @@
 	#include <windows.h>
 #endif
 
+// Forked from VCV Prototype v1.3.0
+// some features removed
 
 using namespace rack;
 Plugin* pluginInstance;
