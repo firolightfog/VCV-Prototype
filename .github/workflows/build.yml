@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/qno/rack-plugin-toolchain-win-linux
-      options: --user root
+      options: --user root --entrypoint /bin/sh
     # This ensures /usr/local/bin is at the front of PATH for all steps in this job
     env:
       PATH: /usr/local/bin:$PATH
@@ -54,7 +54,6 @@ jobs:
           apt-get update
           apt-get install -y git bash
           git --version
-        shell: /bin/sh
           
       - uses: actions/checkout@v4
         with:
