@@ -8,7 +8,8 @@ on:
       - 'res/**'
 
 env:
-  rack-sdk-version: 2.4.0 # Use a stable version
+  rack-sdk-version: 2.4.0 # latest
+  rack-plugin-toolchain-dir: /home/build/rack-plugin-toolchain
 
 defaults:
   run:
@@ -31,17 +32,22 @@ jobs:
           pluginversion=`jq -r '.version' plugin.json`
           echo "Set plugin version from $pluginversion to $pluginversion-$gitrev"
           cat <<< `jq --arg VERSION "$pluginversion-$gitrev" '.version=$VERSION' plugin.json` > plugin.json
+        # only modify plugin version if no tag was created
         if: "! startsWith(github.ref, 'refs/tags/v')"
 
   build:
-    name: Build for ${{ matrix.platform }}  # Updated name
+    name: ${{ matrix.platform }}
     needs: modify-plugin-version
-    runs-on: ubuntu-latest  # Standard Ubuntu runner
-    # Removed the restrictive container section
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/qno/rack-plugin-toolchain-win-linux
+      options: --user root
+    # This ensures /usr/local/bin is at the front of PATH for all steps in this job
+    env:
+      PATH: /usr/local/bin:$PATH
     strategy:
       matrix:
-        # Let's start by building Linux natively. We'll add Windows cross-compilation later.
-        platform: [lin]  # Removed 'win' for now
+        platform: [win, lin]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -52,59 +58,39 @@ jobs:
           path: plugin.json
           key: ${{ github.sha }}-${{ github.run_id }}
 
-      - name: Install essential build tools
+      - name: Download and setup premake
         run: |
-          sudo apt-get update
-          # Install compiler, git, wget, and other essential tools
-          sudo apt-get install -y build-essential git wget curl ca-certificates
-          # Install premake4 (available in Ubuntu repos) and premake5 (we'll download)
-          sudo apt-get install -y premake4
-          echo "Installed tools:"
-          git --version
-          g++ --version
-          premake4 --version
-
-      - name: Download and install premake5
-        run: |
-          # Download latest premake5 binary
+          # Download premake5 (used for Windows cross-compilation in this container)
           wget -q https://github.com/premake/premake-core/releases/download/v5.0.0-beta2/premake-5.0.0-beta2-linux.tar.gz
           tar -xzf premake-5.0.0-beta2-linux.tar.gz
           chmod +x premake5
-          sudo mv premake5 /usr/local/bin/
-          echo "Premake5 version:"
+          mv premake5 /usr/local/bin/
+
+          # Also download premake4 (referenced in the Makefile for Linux target)
+          wget -q https://github.com/premake/premake-4.x/releases/download/v4.4-beta5/premake-4.4-beta5-linux.tar.gz
+          tar -xzf premake-4.4-beta5-linux.tar.gz
+          chmod +x premake4
+          mv premake4 /usr/local/bin/
+
+          # Verify both are available using absolute paths
+          echo "Premake versions available:"
           /usr/local/bin/premake5 --version
+          /usr/local/bin/premake4 --version
 
-      - name: Download Rack SDK
+      - name: Build plugin
         run: |
-          # Download the Linux Rack SDK
-          wget -q https://vcvrack.com/downloads/Rack-SDK-${{ env.rack-sdk-version }}-lin.zip
-          unzip -q Rack-SDK-${{ env.rack-sdk-version }}-lin.zip -d rack-sdk
-          echo "Rack SDK downloaded to: $(pwd)/rack-sdk"
-          ls -la rack-sdk/
-
-      - name: Build the plugin
-        env:
-          # Point RACK_DIR to the downloaded SDK
-          RACK_DIR: ${{ github.workspace }}/rack-sdk
-        run: |
-          echo "Building with RACK_DIR=$RACK_DIR"
-          # First, build dependencies (efsw, QuickJS, etc.)
-          make dep
-          # Then build the main plugin
-          make
-          echo "Build completed. Checking for output:"
-          ls -la build/
-
-      - name: Upload build artifact
+          export PLUGIN_DIR=$GITHUB_WORKSPACE
+          pushd ${{ env.rack-plugin-toolchain-dir }}
+          # Fixed: Added the missing 'x' before 64. The command must be plugin-build-win-x64/lin-x64.
+          make plugin-build-${{ matrix.platform }}-x64
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          # Upload the built plugin library
-          path: build/*.so
-          name: plugin-${{ matrix.platform }}
+          path: ${{ env.rack-plugin-toolchain-dir }}/plugin-build
+          name: ${{ matrix.platform }}
 
-  # Temporarily keep macOS disabled
   build-mac:
-    if: false
+    if: false # <-- Mac jobs are disabled to focus on Windows/Linux first
     name: mac
     needs: modify-plugin-version
     runs-on: macos-latest
@@ -140,12 +126,13 @@ jobs:
           path: dist/*.vcvplugin
           name: mac-${{ matrix.platform }}
 
-  # Keep publish job for future use
   publish:
     name: Publish plugin
+    # only create a release if a tag was created that is called e.g. v1.2.3
+    # see also https://vcvrack.com/manual/Manifest#version
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
-    needs: [build, build-mac]
+    needs:  [build, build-mac]
     steps:
       - uses: actions/checkout@v4
       - uses: FranzDiebold/github-env-vars-action@v2
@@ -172,6 +159,6 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: _artifacts/**/*
+          file: _artifacts/**/*.vcvplugin
           tag: ${{ github.ref }}
           file_glob: true
