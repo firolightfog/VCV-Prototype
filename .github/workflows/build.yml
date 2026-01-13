@@ -49,9 +49,16 @@ jobs:
       matrix:
         platform: [win, lin]
     steps:
+      - name: Install Git
+        run: |
+          apt-get update
+          apt-get install -y git
+          git --version
+          
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+          
       - uses: actions/cache@v4
         id: plugin-version-cache
         with:
@@ -83,6 +90,7 @@ jobs:
           pushd ${{ env.rack-plugin-toolchain-dir }}
           # Fixed: Added the missing 'x' before 64. The command must be plugin-build-win-x64/lin-x64.
           make plugin-build-${{ matrix.platform }}-x64
+          
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
