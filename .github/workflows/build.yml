@@ -8,7 +8,7 @@ on:
       - 'res/**'
 
 env:
-  rack-sdk-version: latest
+  rack-sdk-version: 2.4.0 # latest
   rack-plugin-toolchain-dir: /home/build/rack-plugin-toolchain
 
 defaults:
@@ -40,11 +40,11 @@ jobs:
     needs: modify-plugin-version
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/stevenussell33/rack-plugin-toolchain-win-linux
+      image: ghcr.io/qno/rack-plugin-toolchain-win-linux
       options: --user root
     strategy:
       matrix:
-        platform: [win-x64, lin-x64]
+        platform: [wi, lin]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -112,7 +112,7 @@ jobs:
         run: |
           export PLUGIN_DIR=$GITHUB_WORKSPACE
           pushd ${{ env.rack-plugin-toolchain-dir }}
-          make plugin-build-${{ matrix.platform }}
+          make plugin-build-${{ matrix.platform }}-64
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
