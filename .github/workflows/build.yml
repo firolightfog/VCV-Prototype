@@ -48,6 +48,9 @@ jobs:
     strategy:
       matrix:
         platform: [win, lin]
+    defaults:
+      run:
+        shell: sh
     steps:
       - name: Install Git
         run: |
