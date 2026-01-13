@@ -11,7 +11,7 @@
 	#include <windows.h>
 #endif
 
-// Forked from VCV Prototype v1.3.0 on 2026-01-13
+// Forked from VCV Prototype v1.3.0 on 2026-01-13 
 // some features removed
 
 using namespace rack;
