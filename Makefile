@@ -1,10 +1,12 @@
 RACK_DIR ?= ../..
 
-FLAGS += -Idep/include
-CFLAGS +=
-CXXFLAGS +=
+# Essential compiler flags
+CXXFLAGS += -std=c++17 -Wall -Wextra -Wno-unused-parameter
 
-LDFLAGS +=
+# Include paths
+FLAGS += -I$(RACK_DIR)/include -Idep/include
+
+# Source files
 SOURCES += src/Prototype.cpp
 
 DISTRIBUTABLES += res examples
