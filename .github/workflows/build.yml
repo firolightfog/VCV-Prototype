@@ -48,15 +48,34 @@ jobs:
       matrix:
         platform: [win, lin]
     steps:
+      # STEP 1: Update system and install modern Git FIRST
+      - name: Install Git 2.18+ and dependencies
+        run: |
+          echo "Current Git version:"
+          git --version || echo "Git not installed"
+          
+          # Update package lists and install modern Git
+          apt-get update
+          apt-get install -y software-properties-common
+          add-apt-repository ppa:git-core/ppa -y
+          apt-get update
+          apt-get install -y git
+          
+          echo "New Git version:"
+          git --version
+      
+      # STEP 2: Now checkout with submodules (will work with new Git)
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+      
       - uses: actions/cache@v4
         id: plugin-version-cache
         with:
           path: plugin.json
           key: ${{ github.sha }}-${{ github.run_id }}
 
+      # STEP 3: Install premake (as before)
       - name: Download and setup premake
         run: |
           # Download premake5 (used for Windows cross-compilation in this container)
@@ -78,7 +97,7 @@ jobs:
 
       - name: Build plugin
         run: |
-          export PLUGIN_DIR=$GITHUB_WORKSPACE
+          export PLUGAN_DIR=$GITHUB_WORKSPACE
           pushd ${{ env.rack-plugin-toolchain-dir }}
           # Fixed: Added the missing 'x' before 64. The command must be plugin-build-win-x64/lin-x64.
           make plugin-build-${{ matrix.platform }}-x64
