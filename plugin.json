@@ -1,7 +1,6 @@
 {
   "slug": "VCV-Prototype",
   "name": "Prototype",
-  // Build trigger: initial CI test
   "version": "2.0.20260113",
   "license": "GPL-3.0-or-later",
   "brand": "VCV",
