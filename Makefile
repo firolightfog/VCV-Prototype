@@ -19,9 +19,9 @@ QUICKJS ?= 1
 LUAJIT ?= 0 # 1
 PYTHON ?= 0
 SUPERCOLLIDER ?= 0 # 1
-VULT ?= 1
-LIBPD ?= 1 # 1
-FAUST ?= 1
+VULT ?= 0 # 1
+LIBPD ?= 0 # 1
+FAUST ?= 0 # 1
 
 # Vult depends on both LuaJIT and QuickJS
 ifeq ($(VULT), 1)
@@ -31,6 +31,7 @@ endif
 
 
 # Entropia File System Watcher
+ifdef false #added to debug
 ifdef ARCH_WIN
 	efsw := dep/lib/efsw-static-release.lib
 else
@@ -53,7 +54,7 @@ else
 	cd efsw && cp lib/libefsw-static-release.a $(DEP_PATH)/lib/
 endif
 	cd efsw && cp -R include/efsw $(DEP_PATH)/include/
-
+end if #added to debug
 
 # Duktape
 ifeq ($(DUKTAPE), 1)
