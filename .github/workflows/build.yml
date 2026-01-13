@@ -48,15 +48,13 @@ jobs:
     strategy:
       matrix:
         platform: [win, lin]
-    defaults:
-      run:
-        shell: sh
     steps:
-      - name: Install Git
+      - name: Install Git and Bash
         run: |
           apt-get update
-          apt-get install -y git
+          apt-get install -y git bash
           git --version
+        shell: /bin/sh
           
       - uses: actions/checkout@v4
         with:
