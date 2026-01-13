@@ -16,11 +16,11 @@ include $(RACK_DIR)/arch.mk
 
 DUKTAPE ?= 0
 QUICKJS ?= 1
-LUAJIT ?= 1
+LUAJIT ?= 0 # 1
 PYTHON ?= 0
-SUPERCOLLIDER ?= 1
+SUPERCOLLIDER ?= 0 # 1
 VULT ?= 1
-LIBPD ?= 1
+LIBPD ?= 1 # 1
 FAUST ?= 1
 
 # Vult depends on both LuaJIT and QuickJS
