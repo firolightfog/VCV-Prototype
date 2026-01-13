@@ -54,6 +54,30 @@ jobs:
         with:
           path: plugin.json
           key: ${{ github.sha }}-${{ github.run_id }}
+
+
+      # ▼▼▼ ADD THIS STEP ▼▼▼
+      - name: Debug container environment
+        run: |
+          echo "=== Container Debug Info ==="
+          echo "OS:"
+          cat /etc/os-release || echo "No /etc/os-release"
+          echo ""
+          echo "Package managers available:"
+          command -v apt-get && echo "apt-get: YES" || echo "apt-get: NO"
+          command -v apk && echo "apk: YES" || echo "apk: NO"  
+          command -v yum && echo "yum: YES" || echo "yum: NO"
+          echo ""
+          echo "Current PATH: $PATH"
+          echo ""
+          echo "Trying to install premake5 with apt-get:"
+          apt-get update && apt-get install -y premake5
+          echo "Exit code: $?"
+          echo ""
+          echo "Checking if premake5 installed:"
+          command -v premake5 || echo "premake5 NOT in PATH"
+          find /usr -name "premake5" 2>/dev/null || echo "No premake5 found in /usr"
+          find /usr/local -name "premake5" 2>/dev/null || echo "No premake5 found in /usr/local"
       
       # ▼▼▼ ADD THIS STEP ▼▼▼
       - name: Install premake for Windows/Linux builds
