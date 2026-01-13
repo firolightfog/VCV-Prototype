@@ -40,7 +40,7 @@ jobs:
     needs: modify-plugin-version
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/qno/rack-plugin-toolchain-win-linux
+      image: ghcr.io/stevenussell33/rack-plugin-toolchain-win-linux
       options: --user root
     strategy:
       matrix:
@@ -66,6 +66,7 @@ jobs:
           name: ${{ matrix.platform }}
 
   build-mac:
+    if: false # <-- Add this line to disable the job
     name: mac
     needs: modify-plugin-version
     runs-on: macos-latest
