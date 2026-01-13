@@ -30,7 +30,6 @@ LUAJIT := 1
 endif
 
 # Entropia File System Watcher
-ifdef false #added to debug
 ifdef ARCH_WIN
 	efsw := dep/lib/efsw-static-release.lib
 else
@@ -53,7 +52,6 @@ else
 	cd efsw && cp lib/libefsw-static-release.a $(DEP_PATH)/lib/
 endif
 	cd efsw && cp -R include/efsw $(DEP_PATH)/include/
-endif #added to debug
 
 # Duktape
 ifeq ($(DUKTAPE), 1)
