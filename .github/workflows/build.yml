@@ -54,6 +54,36 @@ jobs:
         with:
           path: plugin.json
           key: ${{ github.sha }}-${{ github.run_id }}
+      
+      # ▼▼▼ ADD THIS STEP ▼▼▼
+      - name: Install premake for Windows/Linux builds
+        run: |
+          # Debug: Check what OS we're in
+          cat /etc/os-release || echo "No /etc/os-release"
+          # Try different package managers
+          if command -v apt-get &> /dev/null; then
+            echo "Using apt-get (Debian/Ubuntu)"
+            apt-get update
+            apt-get install -y premake4 premake5
+          elif command -v apk &> /dev/null; then
+            echo "Using apk (Alpine)"
+            apk add premake4 premake5
+          elif command -v yum &> /dev/null; then
+            echo "Using yum (RHEL/CentOS)"
+            yum install -y premake4 premake5
+          else
+            echo "Unknown package manager, downloading premake5 binary"
+            wget https://github.com/premake/premake-core/releases/download/v5.0.0-beta2/premake-5.0.0-beta2-linux.tar.gz
+            tar -xzf premake-5.0.0-beta2-linux.tar.gz
+            cp premake5 /usr/local/bin/
+            # Also create premake4 symlink for Linux builds
+            ln -s /usr/local/bin/premake5 /usr/local/bin/premake4
+          fi
+          # Verify
+          premake4 --version || echo "premake4 not available"
+          premake5 --version || echo "premake5 not available"
+      # ▲▲▲ ADD THIS STEP ▲▲▲
+               
       - name: Build plugin
         run: |
           export PLUGIN_DIR=$GITHUB_WORKSPACE
